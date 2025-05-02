@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tims Station</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #1e1e1e, #121212);
+        color: #ffffff;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+        font-size: 2.5rem;
+        text-shadow: 0 0 10px #6200ea, 0 0 20px #3700b3;
+      }
+
+      input[type="text"] {
+        padding: 10px;
+        width: 400px;
+        margin-bottom: 20px;
+        border: none;
+        border-radius: 5px;
+        background: #1e1e1e;
+        color: #ffffff;
+        box-shadow: 0 0 10px #6200ea;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        width: 400px; 
+      }
+
+      li {
+        background: #1e1e1e;
+        margin: 10px 0; 
+        padding: 15px;
+        padding-right: 60px; 
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative; 
+        box-shadow: 0 0 10px #6200ea;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+
+      li:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px #3700b3;
+      }
+
+      .description {
+        font-size: 0.9rem;
+        color: #a2a2a2;
+        margin-top: 10px;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-in-out;
+      }
+
+      li:hover .description {
+        max-height: 100px; 
+      }
+
+      li.active {
+        animation: rainbow 3s linear infinite;
+      }
+
+      @keyframes rainbow {
+        0% {
+          box-shadow: 0 0 15px red;
+        }
+        16% {
+          box-shadow: 0 0 15px orange;
+        }
+        33% {
+          box-shadow: 0 0 15px yellow;
+        }
+        50% {
+          box-shadow: 0 0 15px lime;
+        }
+        66% {
+          box-shadow: 0 0 15px cyan;
+        }
+        83% {
+          box-shadow: 0 0 15px blue;
+        }
+        100% {
+          box-shadow: 0 0 15px red;
+        }
+      }
+
+      .controls {
+        position: absolute;
+        top: 50%;
+        right: 15px; 
+        transform: translateY(-50%); 
+      }
+
+      button {
+        background: #6200ea;
+        color: #ffffff;
+        border: none;
+        padding: 10px 15px; 
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background: #3700b3;
+      }
+
+      img {
+        width: 60px;
+        height: 60px;
+        border-radius: 5px;
+        margin-right: 10px;
+      }
+
+      .song-info {
+        display: flex;
+        align-items: center;
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(98, 0, 234, 0.2), transparent);
+        animation: pulse 5s infinite;
+        z-index: -1;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.8;
+        }
+        50% {
+          transform: scale(1.5);
+          opacity: 0.4;
+        }
+      }
+
+      .background-time {
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 8rem;
+        color: rgba(255, 255, 255, 0);
+        pointer-events: none;
+        z-index: -1; 
+        font-family: 'Courier New', Courier, monospace;
+        white-space: nowrap;
+        transition: color 1s ease-in-out; 
+      }
+
+      .background-time.visible {
+        color: rgba(255, 255, 255, 0.1);
+      }
+
+      @media (max-width: 768px) {
+        .background-time {
+          font-size: 4rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .background-time {
+          font-size: 3rem; 
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <input type="text" id="search" placeholder="Search title..." />
+    <ul id="fileList"></ul>
+    <div id="background-time" class="background-time">0:00</div>
+
+    <script>
+      let songs = [];
+      let currentPlaying = null;
+      let audio = null;
+
+      async function loadSongs() {
+        const response = await fetch("songs.json");
+        songs = await response.json();
+        displayFiles(songs);
+      }
+
+      const fileList = document.getElementById("fileList");
+      const searchInput = document.getElementById("search");
+      const backgroundTime = document.getElementById("background-time");
+
+      function displayFiles(files) {
+        fileList.innerHTML = "";
+        files.forEach((song, index) => {
+          const li = document.createElement("li");
+          li.id = `song-${index}`;
+          li.innerHTML = `
+            <div class="song-info">
+              <span>${song.title}</span>
+            </div>
+            <div class="description">${song.description}</div>
+            <div class="controls">
+              <button id="play-btn-${index}" onclick="togglePlay(${index})">Play</button>
+            </div>
+          `;
+          fileList.appendChild(li);
+        });
+      }
+
+      function togglePlay(index) {
+        const playButton = document.getElementById(`play-btn-${index}`);
+        const currentSongElement = document.getElementById(`song-${index}`);
+
+        if (currentPlaying !== null && currentPlaying !== index) {
+          const previousButton = document.getElementById(`play-btn-${currentPlaying}`);
+          const previousSongElement = document.getElementById(`song-${currentPlaying}`);
+          previousButton.innerText = "Play";
+          previousSongElement.classList.remove("active");
+          backgroundTime.classList.remove("visible");
+          backgroundTime.innerText = "0:00 / 0:00";
+          audio.pause();
+          audio.currentTime = 0;
+        }
+
+        if (currentPlaying === index) {
+          if (audio.paused) {
+            audio.play();
+            playButton.innerText = "Pause";
+            currentSongElement.classList.add("active");
+            backgroundTime.classList.add("visible");
+          } else {
+            audio.pause();
+            playButton.innerText = "Play";
+            currentSongElement.classList.remove("active");
+            backgroundTime.classList.remove("visible");
+          }
+        } else {
+          currentPlaying = index;
+          audio = new Audio(songs[index].file);
+
+          audio.addEventListener("loadedmetadata", () => {
+            const duration = formatTime(audio.duration);
+            backgroundTime.innerText = `0:00 / ${duration}`;
+            backgroundTime.classList.add("visible"); 
+          });
+
+          audio.addEventListener("timeupdate", () => {
+            const currentTime = formatTime(audio.currentTime);
+            const duration = formatTime(audio.duration);
+            backgroundTime.innerText = `${currentTime} / ${duration}`; 
+          });
+
+          audio.play();
+          playButton.innerText = "Pause";
+          currentSongElement.classList.add("active");
+
+          audio.onended = () => {
+            playButton.innerText = "Play";
+            currentSongElement.classList.remove("active");
+            backgroundTime.classList.remove("visible");
+            backgroundTime.innerText = "0:00 / 0:00";
+            currentPlaying = null;
+          };
+        }
+      }
+
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
+      }
+
+      searchInput.addEventListener("input", () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filteredFiles = songs.filter((song) =>
+          song.title.toLowerCase().includes(searchTerm)
+        );
+        displayFiles(filteredFiles);
+      });
+
+      loadSongs();
+    </script>
+  </body>
+</html>
