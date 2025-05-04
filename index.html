@@ -34,7 +34,7 @@
       input[type="text"] {
         padding: 10px;
         width: 90%; 
-        max-width: 400px;
+        max-width: 600px;
         margin-bottom: 20px;
         border: none;
         border-radius: 5px;
@@ -47,7 +47,7 @@
         list-style: none;
         padding: 0;
         width: 90%; 
-        max-width: 400px; 
+        max-width: 600px; 
         margin: 0;
       }
 
@@ -292,7 +292,6 @@
     </style>
   </head>
   <body>
-    <input type="text" id="search" placeholder="Search title..." />
     <ul id="fileList"></ul>
     <div class="volume-control">
       <input type="range" id="volume" min="0" max="1" step="0.01" value="1" />
@@ -314,7 +313,6 @@
       }
 
       const fileList = document.getElementById("fileList");
-      const searchInput = document.getElementById("search");
       const backgroundTime = document.getElementById("background-time");
 
       function displayFiles(files) {
@@ -328,18 +326,18 @@
             </div>
             <div class="description">${song.description}</div>
             <div class="controls">
-              <button id="play-btn-${index}" onclick="togglePlay(${index})">Play</button>
+              <button id="play-btn-${index}" onclick="togglePlay(${index}, ${JSON.stringify(song).replace(/"/g, '&quot;')})">Play</button>
             </div>
           `;
           fileList.appendChild(li);
         });
       }
 
-      function togglePlay(index) {
+      function togglePlay(index, song) {
         const playButton = document.getElementById(`play-btn-${index}`);
         const currentSongElement = document.getElementById(`song-${index}`);
-
-        if (currentPlaying !== null && currentPlaying !== index) {
+      
+        if (audio && currentPlaying !== null && currentPlaying !== index) {
           const previousButton = document.getElementById(`play-btn-${currentPlaying}`);
           const previousSongElement = document.getElementById(`song-${currentPlaying}`);
           previousButton.innerText = "Play";
@@ -348,8 +346,9 @@
           backgroundTime.innerText = "0:00 / 0:00";
           audio.pause();
           audio.currentTime = 0;
+          audio = null;
         }
-
+      
         if (currentPlaying === index) {
           if (audio.paused) {
             audio.play();
@@ -364,32 +363,32 @@
           }
         } else {
           currentPlaying = index;
-          audio = new Audio(songs[index].file);
-
+          audio = new Audio(song.file); 
           audio.volume = currentVolume;
-
+      
           audio.addEventListener("loadedmetadata", () => {
             const duration = formatTime(audio.duration);
             backgroundTime.innerText = `0:00 / ${duration}`;
-            backgroundTime.classList.add("visible"); 
+            backgroundTime.classList.add("visible");
           });
-
+      
           audio.addEventListener("timeupdate", () => {
             const currentTime = formatTime(audio.currentTime);
             const duration = formatTime(audio.duration);
-            backgroundTime.innerText = `${currentTime} / ${duration}`; 
+            backgroundTime.innerText = `${currentTime} / ${duration}`;
           });
-
+      
           audio.play();
           playButton.innerText = "Pause";
           currentSongElement.classList.add("active");
-
+      
           audio.onended = () => {
             playButton.innerText = "Play";
             currentSongElement.classList.remove("active");
             backgroundTime.classList.remove("visible");
             backgroundTime.innerText = "0:00 / 0:00";
             currentPlaying = null;
+            audio = null; 
           };
         }
       }
@@ -399,14 +398,6 @@
         const secs = Math.floor(seconds % 60);
         return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
       }
-
-      searchInput.addEventListener("input", () => {
-        const searchTerm = searchInput.value.toLowerCase();
-        const filteredFiles = songs.filter((song) =>
-          song.title.toLowerCase().includes(searchTerm)
-        );
-        displayFiles(filteredFiles);
-      });
 
       loadSongs();
     </script>
