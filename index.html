@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sound Station</title>
 
-    <meta name="description" content="A simple music player with a modern design." />
-    <meta name="keywords" content="music, player, audio, modern, design" />
+    <meta name="description" content="timfernix' simple music player." />
+    <meta name="keywords" content="music, player, audio, timfernix, simple" />
     <meta name="author" content="timfernix" />
 
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://timfernix.github.io/soundstation/" />
     <meta property="og:title" content="Sound Station" />
-    <meta property="og:description" content="A simple music player with a modern design." />
+    <meta property="og:description" content="Atimfernix' simple music player." />
     <meta property="og:image" content="https://raw.githubusercontent.com/timfernix/soundstation/refs/heads/main/image.jpg" />
 
     <style>
@@ -300,6 +300,44 @@
         border-radius: 50%;
         cursor: pointer;
       }
+
+      .progress-container {
+        position: fixed;
+        top: 20%; 
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 600px;
+        z-index: 1;
+        display: none; 
+      }
+
+      #progress-bar {
+        width: 100%;
+        -webkit-appearance: none;
+        background: rgba(255, 255, 255, 0.1);
+        height: 5px;
+        border-radius: 5px;
+        outline: none;
+        cursor: pointer;
+      }
+
+      #progress-bar::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 15px;
+        height: 15px;
+        background: #ffffff;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      #progress-bar::-moz-range-thumb {
+        width: 15px;
+        height: 15px;
+        background: #ffffff;
+        border-radius: 50%;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -311,6 +349,9 @@
       Volume: <span id="volume-value">100%</span>
     </div>
     <div id="background-time" class="background-time">0:00</div>
+    <div id="progress-container" class="progress-container">
+      <input type="range" id="progress-bar" min="0" max="100" value="0" />
+    </div>
 
     <script>
       let songs = [];
@@ -325,6 +366,8 @@
 
       const fileList = document.getElementById("fileList");
       const backgroundTime = document.getElementById("background-time");
+      const progressContainer = document.getElementById("progress-container");
+      const progressBar = document.getElementById("progress-bar");
 
       function displayFiles(files) {
         fileList.innerHTML = "";
@@ -354,6 +397,7 @@
           previousButton.innerText = "Play";
           previousSongElement.classList.remove("active");
           backgroundTime.classList.remove("visible");
+          progressContainer.style.display = "none"; 
           backgroundTime.innerText = "0:00 / 0:00";
           audio.pause();
           audio.currentTime = 0;
@@ -366,11 +410,13 @@
             playButton.innerText = "Pause";
             currentSongElement.classList.add("active");
             backgroundTime.classList.add("visible");
+            progressContainer.style.display = "block"; 
           } else {
             audio.pause();
             playButton.innerText = "Play";
             currentSongElement.classList.remove("active");
             backgroundTime.classList.remove("visible");
+            progressContainer.style.display = "none"; 
           }
         } else {
           currentPlaying = index;
@@ -381,12 +427,24 @@
             const duration = formatTime(audio.duration);
             backgroundTime.innerText = `0:00 / ${duration}`;
             backgroundTime.classList.add("visible");
+            progressContainer.style.display = "block"; 
           });
       
           audio.addEventListener("timeupdate", () => {
             const currentTime = formatTime(audio.currentTime);
             const duration = formatTime(audio.duration);
             backgroundTime.innerText = `${currentTime} / ${duration}`;
+            if (audio.duration) {
+              const progress = (audio.currentTime / audio.duration) * 100;
+              progressBar.value = progress;
+            }
+          });
+      
+          progressBar.addEventListener("input", () => {
+            if (audio) {
+              const seekTime = (progressBar.value / 100) * audio.duration;
+              audio.currentTime = seekTime;
+            }
           });
       
           audio.play();
@@ -397,6 +455,7 @@
             playButton.innerText = "Play";
             currentSongElement.classList.remove("active");
             backgroundTime.classList.remove("visible");
+            progressContainer.style.display = "none"; 
             backgroundTime.innerText = "0:00 / 0:00";
             currentPlaying = null;
             audio = null; 
