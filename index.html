@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sound Station</title>
 
+    <link rel="icon" href="https://raw.githubusercontent.com/timfernix/soundstation/refs/heads/main/icon.png">
+
     <meta name="description" content="timfernix' simple music player." />
     <meta name="keywords" content="music, player, audio, timfernix, simple" />
     <meta name="author" content="timfernix" />
@@ -15,328 +17,58 @@
     <meta property="og:description" content="timfernix' simple music player." />
     <meta property="og:image" content="https://raw.githubusercontent.com/timfernix/soundstation/refs/heads/main/image.jpg" />
 
+    <link rel="stylesheet" href="/styles.css">
     <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-      }
-
       body {
-        font-family: Arial, sans-serif;
         background: linear-gradient(135deg, #1e1e1e, #121212);
-        background-size: cover; 
-        background-attachment: fixed; 
-        color: #ffffff;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
       }
 
       h1 {
-        margin-bottom: 20px;
-        font-size: 2.5rem;
         text-shadow: 0 0 10px #6200ea, 0 0 20px #3700b3;
       }
 
       input[type="text"] {
-        padding: 10px;
-        width: 90%; 
-        max-width: 600px;
-        margin-bottom: 20px;
-        border: none;
-        border-radius: 5px;
-        background: #1e1e1e;
-        color: #ffffff;
         box-shadow: 0 0 10px #6200ea;
-      }
-
-      ul {
-        list-style: none;
-        padding: 0;
-        width: 90%; 
-        max-width: 600px; 
-        margin: 0;
       }
 
       li {
-        background: #1e1e1e;
-        margin: 10px 0; 
-        padding: 15px;
-        padding-right: 60px; 
-        border-radius: 10px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        position: relative; 
         box-shadow: 0 0 10px #6200ea;
-        transition: transform 0.3s, box-shadow 0.3s;
       }
 
       li:hover {
-        transform: scale(1.05);
         box-shadow: 0 0 15px #3700b3;
-      }
-
-      .description {
-        font-size: 0.9rem;
-        color: #a2a2a2;
-        margin-top: 10px;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease-in-out;
-      }
-
-      li:hover .description {
-        max-height: 100px; 
-      }
-
-      li.active {
-        animation: rainbow 3s linear infinite;
-      }
-
-      @keyframes rainbow {
-        0% {
-          box-shadow: 0 0 15px red;
-        }
-        16% {
-          box-shadow: 0 0 15px orange;
-        }
-        33% {
-          box-shadow: 0 0 15px yellow;
-        }
-        50% {
-          box-shadow: 0 0 15px lime;
-        }
-        66% {
-          box-shadow: 0 0 15px cyan;
-        }
-        83% {
-          box-shadow: 0 0 15px blue;
-        }
-        100% {
-          box-shadow: 0 0 15px red;
-        }
-      }
-
-      .controls {
-        position: absolute;
-        top: 50%;
-        right: 15px; 
-        transform: translateY(-50%); 
       }
 
       button {
         background: #6200ea;
-        color: #ffffff;
-        border: none;
-        padding: 10px 15px; 
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background 0.3s;
       }
 
       button:hover {
         background: #3700b3;
       }
 
-      img {
-        width: 60px;
-        height: 60px;
-        border-radius: 5px;
-        margin-right: 10px;
-      }
-
-      .song-info {
-        display: flex;
-        align-items: center;
-      }
-
       body::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 200%;
-        height: 200%;
         background: radial-gradient(circle, rgba(98, 0, 234, 0.2), transparent);
-        animation: pulse 5s infinite;
-        z-index: -1;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(1);
-          opacity: 0.8;
-        }
-        50% {
-          transform: scale(1.5);
-          opacity: 0.4;
-        }
       }
 
       .background-time {
-        position: fixed;
-        top: 10%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 8rem;
         color: rgba(255, 255, 255, 0);
-        pointer-events: none;
-        z-index: -1; 
-        font-family: 'Courier New', Courier, monospace;
-        white-space: nowrap;
-        transition: color 1s ease-in-out; 
       }
 
       .background-time.visible {
         color: rgba(255, 255, 255, 0.1);
       }
 
-      @media (max-width: 768px) {
-        .background-time {
-          font-size: 4rem;
-        }
-
-        body::before {
-          display: none; 
-        }
-      }
-
-      @media (max-width: 480px) {
-        .background-time {
-          font-size: 3rem; 
-        }
-      }
-
-      .volume-control {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: fixed;
-        bottom: 10px;
-        width: 90%; 
-        max-width: 400px;
-      }
-
-      .volume-control label {
-        font-size: 1rem;
-        color: #ffffff;
-      }
-
       .volume-control input[type="range"] {
-        width: 100%; 
-        -webkit-appearance: none;
         background: #6200ea;
-        height: 5px;
-        border-radius: 5px;
-        outline: none;
-        cursor: pointer;
-      }
-
-      .volume-control input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        width: 15px;
-        height: 15px;
-        background: #ffffff;
-        border-radius: 50%;
-        cursor: pointer;
-      }
-
-      .volume-control input[type="range"]::-moz-range-thumb {
-        width: 15px;
-        height: 15px;
-        background: #ffffff;
-        border-radius: 50%;
-        cursor: pointer;
-      }
-
-      .background-volume {
-        position: fixed;
-        bottom: 10%;
-        left: 50%;
-        transform: translate(-50%, 0);
-        font-size: 2rem;
-        color: rgba(255, 255, 255, 0.1); 
-        pointer-events: none; 
-        z-index: -1; 
-        font-family: 'Courier New', Courier, monospace; 
-        white-space: nowrap; 
-        text-align: center;
       }
 
       #volume {
-        position: fixed;
-        bottom: 8%;
-        left: 50%;
-        transform: translate(-50%, 0);
-        width: 300px;
-        -webkit-appearance: none;
         background: #6200ea;
-        height: 5px;
-        border-radius: 5px;
-        outline: none;
-        cursor: pointer;
-        z-index: 1; 
-      }
-
-      #volume::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        width: 15px;
-        height: 15px;
-        background: #ffffff;
-        border-radius: 50%;
-        cursor: pointer;
-      }
-
-      #volume::-moz-range-thumb {
-        width: 15px;
-        height: 15px;
-        background: #ffffff;
-        border-radius: 50%;
-        cursor: pointer;
-      }
-
-      .progress-container {
-        position: fixed;
-        top: 20%; 
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 90%;
-        max-width: 600px;
-        z-index: 1;
-        display: none; 
       }
 
       #progress-bar {
-        width: 100%;
-        -webkit-appearance: none;
-        background: rgba(255, 255, 255, 0.1);
-        height: 5px;
-        border-radius: 5px;
-        outline: none;
-        cursor: pointer;
-      }
-
-      #progress-bar::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        width: 15px;
-        height: 15px;
-        background: #ffffff;
-        border-radius: 50%;
-        cursor: pointer;
-      }
-
-      #progress-bar::-moz-range-thumb {
-        width: 15px;
-        height: 15px;
-        background: #ffffff;
-        border-radius: 50%;
-        cursor: pointer;
+        background: rgba(98, 0, 234, 0.1);
       }
     </style>
   </head>
